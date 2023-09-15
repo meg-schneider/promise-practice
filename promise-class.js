@@ -5,6 +5,7 @@ const STATE = {
 }
 
 class MyPromise {
+  
   #thenCbs = [];
   #catchCbs = [];
   //pending, rejected, fulfilled
@@ -14,22 +15,29 @@ class MyPromise {
   #onSuccessBind = this.#onSuccess.bind(this)
   #onFailBind = this.#onFail.bind(this)
 
+  // pass a callback into constructor which will get passed into the promise
+    // every time you you create a promise it immediately calls the callback that was passed into it-- need to pass methods into it for success and failure
+    // wrapped in try catch because if it fails it's just going to call the fail method
   constructor(cb) {
+    
     try {
       cb(this.#onSuccessBind, this.#onFailBind)
     } catch (e) {
       this.onFail(e)
     }
   }
-
+  // if we're successful, run all the then cbs 
+  // must reset the array so the callbacks that we've already run don't get called in the future
   #runCallbacks() {
+    
     if (this.#state === STATE.FULFILLED) {
       this.#thenCbs.forEach(callback => {
         callback(this.#value)
       })
+
       this.#thenCbs = [];
     }
-
+    // if we're failed, run all the catch cbs 
     if (this.#state === STATE.REJECTED) {
       this.#catchCbs.forEach(callback => {
         callback(this.#value)
@@ -113,6 +121,9 @@ class MyPromise {
     return this.then(undefined, cb)
   }
 
+   // this promise never gets any value passed to it
+    // can perform a cleanup task like closing a network, 
+    // regardless of whether the promise sucdeeded or failed.
   finally(cb) {
     return this.then(result => {
       cb()
@@ -200,7 +211,7 @@ class MyPromise {
     })
   }
 
-  // similar to race, returns the first one that succeeds. 
+  // similar to race, resolves with the first one that succeeds. 
   // does NOT return on failure unless every single promise passed to it fails.
   static any(promises) {
     const errors = [];

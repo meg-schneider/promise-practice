@@ -5,38 +5,39 @@ const STATE = {
 }
 
 class MyPromise {
-  #state = STATE.PENDING
-  #thenCbs = []
-  #catchCbs = []
   #value
+  #state = STATE.PENDING;
   #onSuccessBind = this.#onSuccess.bind(this)
   #onFailBind = this.#onFail.bind(this)
+  #thenCbs = [];
+  #catchCbs = [];
 
   constructor(cb) {
     try {
       cb(this.#onSuccessBind, this.#onFailBind)
-    } catch (error) {
+    } catch(error) {
       this.#onFail(error)
     }
   }
 
   #runCallbacks() {
     if (this.#state === STATE.FULFILLED) {
-      this.#thenCbs.forEach(callback => {
-        callback(this.#value)
+      this.#thenCbs.forEach(cb => {
+        cb(this.#value)
       })
-      this.#thenCbs = []
+      this.#thenCbs = [];
     }
-
     if (this.#state === STATE.REJECTED) {
-      this.#catchCbs.forEach(callback => {
-        callback(this.#value)
+      this.#catchCbs.forEach(cb => {
+        cb(this.#value)
       })
+      this.#catchCbs = [];
     }
   }
+ 
 
   #onSuccess(value) {
-    queueMicrotask(() => {
+    queueMicrotask(() =>{
       if (this.#state !== STATE.PENDING) return
 
       if (value instanceof MyPromise) {
@@ -46,8 +47,9 @@ class MyPromise {
 
       this.#value = value;
       this.#state = STATE.FULFILLED;
-      this.#runCallbacks()
+      this.#runCallbacks();
     })
+    
   }
 
   #onFail(value) {
@@ -65,11 +67,11 @@ class MyPromise {
 
       this.#value = value;
       this.#state = STATE.REJECTED;
-      this.#runCallbacks()
+      this.#runCallbacks();
     })
   }
-  
-  then(thenCb, catchCb){
+
+  then(thenCb, catchCb) {
     return new MyPromise((resolve, reject) => {
       this.#thenCbs.push(result => {
         if (thenCb == null) {
@@ -82,10 +84,10 @@ class MyPromise {
           reject(error)
         }
       })
+
       this.#catchCbs.push(result => {
         if (catchCb == null) {
           reject(result)
-          return
         }
         try {
           resolve(catchCb(result))
@@ -93,16 +95,13 @@ class MyPromise {
           reject(error)
         }
       })
-
-      this.#runCallbacks()
     })
-
   }
 
   catch(cb) {
     return this.then(undefined, cb)
   }
-  
+
   finally(cb) {
     return this.then(result => {
       cb()
@@ -114,7 +113,7 @@ class MyPromise {
   }
 
   static resolve(value) {
-    return new MyPromise((resolve) => {
+    return new MyPromise(resolve => {
       resolve(value)
     })
   }
@@ -126,25 +125,24 @@ class MyPromise {
   }
 
   static all(promises) {
-    const results = []
+    const results = [];
     let completedPromises = 0;
     return new MyPromise((resolve, reject) => {
       for (let i = 0; i < promises.length; i++) {
         const promise = promises[i];
-        promise.then(value => {
-          results[i] = value;
-          completedPromises++;
-          if (completedPromises === promises.length) {
-            resolve(results);
-          }
-        }).catch(reject)
+        promise
+          .then(value => {
+            results[i] = value;
+            completedPromises++;
+            if (completedPromises === promises.length) {
+              resolve(results)
+            }
+          })
+          .catch(reject)
       }
     })
-    
-  }
+  } 
 
-  // run through every promise and store the status as well as the value
-  // or the reason for failure
   static allSettled(promises) {
     const results = [];
     let completedPromises = 0;
@@ -153,10 +151,12 @@ class MyPromise {
         const promise = promises[i];
         promise
           .then(value => {
-            results[i] = { status: STATE.FULFILLED, value }
-          }).catch(reason => {
+            results[i] = { status: STATE.FULFILLED, value: value}
+          })
+          .catch(reason => {
             results[i] = { status: STATE.REJECTED, reason }
-          }).finally(() => {
+          })
+          .finally(() => {
             completedPromises++;
             if (completedPromises === promises.length) {
               resolve(results)
@@ -180,27 +180,27 @@ class MyPromise {
     let brokenPromises = 0;
     return new MyPromise((resolve, reject) => {
       for (let i = 0; i < promises.length; i++) {
-        const promise = promises[i];
+        const promise = promises[i]
         promise
           .then(resolve)
           .catch(value => {
-            errors[i] = value;
             brokenPromises++;
+            errors[i] = value;
             if (brokenPromises === promises.length) {
-              reject(new AggregateError(errors, 'all promises broken 😔'))
+              reject(new AggregateError(errors, 'all promises broken'))
             }
           })
       }
     })
   }
- }
+}
 
- class UncaughtPromiseError extends Error {
+class UncaughtPromiseError extends Error {
   constructor(error) {
-    super(error) 
-    this.stack = `(in promise): ${error.stack}`
-    
-  }
- }
+    super(error)
 
- module.exports = MyPromise
+    this.stack = `(in promise) ${error.stack}`
+  }
+}
+
+module.exports = MyPromise
