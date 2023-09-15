@@ -74,7 +74,8 @@ class MyPromise {
     })
     
   }
-  // then: resolves to the value that the handler function returns or, if that returns a promise, 
+  // then: resolves to the value that the handler function returns or, 
+  // if that returns a promise, 
   // waits for that promise and then resolves to its result
   then(thenCb, catchCb) {
     return new MyPromise((resolve, reject) => {
@@ -123,13 +124,13 @@ class MyPromise {
   }
 
   static resolve(value) {
-    return new Promise(resolve => {
+    return new MyPromise(resolve => {
       resolve(value)
     })
   }
 
   static reject(value) {
-    return new Promise((resolve, reject) => {
+    return new MyPromise((resolve, reject) => {
       reject(value)
     })
   }

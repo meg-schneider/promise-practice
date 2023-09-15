@@ -75,7 +75,7 @@ class MyPromise {
   then(thenCb, catchCb) {
     return new MyPromise((resolve, reject) => {
         this.#thenCbs.push(result => {
-          if (thenCb === null) {
+          if (thenCb == null) {
             resolve(result)
             return
           }
@@ -88,7 +88,7 @@ class MyPromise {
         })
 
         this.#catchCbs.push(result => {
-          if (catchCb === null) {
+          if (catchCb == null) {
             reject(result)
             return
           }

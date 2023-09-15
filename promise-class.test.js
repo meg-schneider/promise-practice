@@ -1,4 +1,4 @@
-const MyPromise = require("./promise-class4.js")
+const MyPromise = require("./promise-class6.js")
 // const MyPromise = Promise
 
 const DEFAULT_VALUE = "default"
